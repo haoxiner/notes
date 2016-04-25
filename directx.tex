@@ -1,0 +1,71 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{xeCJK}
+\usepackage{fontspec}
+\usepackage{listings}
+\usepackage{indentfirst}
+\setCJKmainfont{SimSun}
+\setCJKmonofont{SimSun}
+\setmainfont{Times New Roman}
+\title{Win32 GUI}
+\author{郝鑫}
+\newfontfamily{\ttconsolas}{Consolas}
+\begin{document}
+\maketitle
+\tableofcontents
+\section{wWinMain函数}
+支持UNICODE的wWinMain函数。
+\lstset{language=C++,escapechar=`,basicstyle=\ttconsolas,frame=single,breaklines=true}
+\begin{lstlisting}
+int WINAPI wWinMain(
+    HINSTANCE hInstance,
+    HINSTANCE hPrevInstance,
+    PWSTR pCmdLine,
+    int nCmdShow
+    );
+\end{lstlisting}
+WINAPI就是\_\_stdcall
+\footnote{
+\_\_cdecl：这是C/C++函数默认的调用规范，参数从右向左依次传递，压入堆栈，由调用函数负责堆栈的清退。这种方式适用于传递个数可变的参数给被调用函数，因为只有调用函数才知道它传递了多少个参数给被调函数。如printf函数。
+\_\_stdcall：参数从右向左依次传递，并压入堆栈，由被调用函数清退堆栈。该规范生成的函数代码比\_\_cdecl更小，但当函数有可变个数参数，自动转化为\_\_cdecl调用规范。
+}。
+hInstance是标识本程序的“实例句柄”，hPrevInstance在32位Windows中不再使用，总是NULL。pCmdLine是UNICODE的命令行参数。nShowCmd表示程序最初如何显示（正常，最小/大化《Windows程序设计》P52）。
+\section{创建window}
+\begin{lstlisting}
+const wchar_t CLASS_NAME[] = L"Mages";
+WNDCLASS wc = {};
+wc.lpfnWndProc = WindowProc;
+wc.hInstance = hInstance;
+wc.lpszClassName = CLASS_NAME;
+RegisterClass(&wc);
+HWND hwnd = CreateWindowEx(
+    0,// window style
+    CLASS_NAME,
+    L"Mages",
+    WS_OVERLAPPEDWINDOW,//window style
+    CW_USEDEFAULT,
+    CW_USEDEFAULT,
+    CW_USEDEFAULT,
+    CW_USEDEFAULT,//size,position
+    NULL, // parent window
+    NULL, // menu
+    hInstance,
+    NULL // additional data
+    );
+if (hwnd == NULL)
+{
+    return 0;
+}
+ShowWindow(hwnd, nCmdShow);
+MSG msg = {};
+while (GetMessage(&msg,NULL,0,0))
+{
+    TranslateMessage(&msg);
+    DispatchMessage(&msg);
+}
+\end{lstlisting}
+WS\_OVERLAPPEDWINDOW是多个标记位的复合，包含标题栏、左边的系统菜单按钮、尺寸调整边框和右上的三个按钮。TranslateMessage转换某些键盘消息。
+\section{D3D初始化}
+为什么双缓冲能解决闪屏问题？因为如果按像素画下来，上方的像素和下方的像素不是以同时的时间出现或消失，就会看起来感觉是闪烁。
+
+
+\end{document}
